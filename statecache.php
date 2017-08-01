@@ -140,7 +140,16 @@ class qbehaviour_opaque_state_cache {
         // Try to stop any active question session.
         if (!empty($state->questionsessionid) && !empty($state->engine)) {
             try {
-                $connection = new qbehaviour_opaque_connection($state->engine);
+	            switch($state->engine->webservice) {
+				    case 'soap':
+				    	$connection = new qbehaviour_opaque_connection_soap($state->engine);
+				    	break;
+				    case 'rest':
+				    	$connection = new qbehaviour_opaque_connection_rest($state->engine);
+				    	break;
+				    default:
+				    	throw new moodle_exception('couldnotdeterminewebservice', 'qtype_opaque', '', $engineid, "invalid webservice: {$engine->webservice}");
+				}
                 $connection->stop($state->questionsessionid);
                 $state->questionsessionid = null;
             } catch (SoapFault $e) {

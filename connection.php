@@ -37,7 +37,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2011 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qbehaviour_opaque_connection extends qtype_opaque_connection {
+class qbehaviour_opaque_connection_soap extends qtype_opaque_connection_soap {
 
     /**
      * @param string $secret the secret string for this question engine.
@@ -100,3 +100,55 @@ class qbehaviour_opaque_connection extends qtype_opaque_connection {
         $this->soapclient->stop($questionsessionid);
     }
 }
+
+class qbehaviour_opaque_connection_rest extends qtype_opaque_connection_rest {
+
+	protected function generate_passkey($userid) {
+        return md5($this->passkeysalt . $userid);
+    }
+
+    public function start($remoteid, $remoteversion, $data, $cachedresources, $options = null) {
+
+        $initialparams = array(
+            'randomseed' => $data['-_randomseed'],
+            'userid' => $data['-_userid'],
+            'language' => $data['-_language'],
+            'passKey' => $this->generate_passkey($data['-_userid']),
+            'preferredbehaviour' => $data['-_preferredbehaviour'],
+        );
+
+        if (array_key_exists('-_attempt', $data)) {
+            $initialparams['attempt'] = $data['-_attempt'];
+            $initialparams['navigatorVersion'] = '1.9.9';
+        }
+
+        if (!is_null($options)) {
+            $initialparams['display_readonly'] = (int) $options->readonly;
+            $initialparams['display_marks'] = (int) $options->marks;
+            $initialparams['display_markdp'] = (int) $options->markdp;
+            $initialparams['display_correctness'] = (int) $options->correctness;
+            $initialparams['display_feedback'] = (int) $options->feedback;
+            $initialparams['display_generalfeedback'] = (int) $options->generalfeedback;
+        }
+
+		
+
+        return $this->restclient->start($remoteid, $remoteversion, $this->question_base_url(),
+                array_keys($initialparams), array_values($initialparams), $cachedresources);
+    }
+
+    public function process($questionsessionid, $response) {
+        return $this->restclient->process($questionsessionid,
+                array_keys($response), array_values($response));
+    }
+
+    public function stop($questionsessionid) {
+        $response = $this->restclient->stop($questionsessionid);
+    }
+}
+
+
+
+
+
+

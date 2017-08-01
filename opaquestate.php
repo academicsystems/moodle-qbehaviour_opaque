@@ -230,14 +230,15 @@ class qbehaviour_opaque_state {
             $this->state->results = $processreturn->results;
             $this->state->resultssequencenumber = $this->state->sequencenumber + 1;
         }
+        
+        $this->extract_stuff_from_response($processreturn, $resourcecache);
 
-        if ($processreturn->questionEnd) {
+		if ($processreturn->questionEnd) {
             $this->state->questionended = true;
             unset($this->state->questionsessionid);
             return;
         }
-
-        $this->extract_stuff_from_response($processreturn, $resourcecache);
+        
         $this->state->sequencenumber++;
     }
 
@@ -375,7 +376,16 @@ class qbehaviour_opaque_state {
      */
     protected function get_connection() {
         if (empty($this->connection)) {
-            $this->connection = new qbehaviour_opaque_connection($this->state->engine);
+	        switch($this->state->engine->webservice) {
+			    case 'soap':
+			    	$this->connection = new qbehaviour_opaque_connection_soap($this->state->engine);
+			    	break;
+			    case 'rest':
+			    	$this->connection = new qbehaviour_opaque_connection_rest($this->state->engine);
+			    	break;
+			    default:
+			    	throw new moodle_exception('couldnotdeterminewebservice', 'qtype_opaque', '', $engineid, "invalid webservice: {$engine->webservice}");
+			}
         }
 
         return $this->connection;

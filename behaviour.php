@@ -74,10 +74,8 @@ class qbehaviour_opaque extends question_behaviour {
 
         parent::init_first_step($step, $variant);
 
-        // We no longer set the random seed as such (we pass a fixed conventional
-        // value instead). Instead we pass the variant as OpenMark's 'attempt'
-        // paramter.
-        $step->set_behaviour_var('_randomseed', 123456789);
+        // we pass the variant as OpenMark's 'attempt' paramter.
+        $step->set_behaviour_var('_randomseed', rand());
         $step->set_behaviour_var('_attempt', $variant);
         $step->set_behaviour_var('_userid', $USER->id);
         $step->set_behaviour_var('_language', current_language());

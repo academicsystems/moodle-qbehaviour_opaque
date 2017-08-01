@@ -160,8 +160,12 @@ class qbehaviour_opaque_resource_cache {
      * @param string $mimetype the type of the file to cache.
      * @param string $content the contents to write to the file.
      */
-    public function cache_file($filename, $mimetype, $content) {
-        file_put_contents($this->file_path($filename), $content);
+    public function cache_file($filename, $mimetype, $content, $encoding = '') {
+	    if($encoding === "base64") {
+		    file_put_contents($this->file_path($filename), base64_decode($content));
+	    } else {
+		    file_put_contents($this->file_path($filename), $content);
+	    }
         file_put_contents($this->file_meta_path($filename), $mimetype);
     }
 
@@ -179,7 +183,7 @@ class qbehaviour_opaque_resource_cache {
             if (strpos($resource->mimeType, 'text/') === 0 && !empty($resource->encoding)) {
                 $mimetype .= ';charset=' . $resource->encoding;
             }
-            $this->cache_file($resource->filename, $mimetype, $resource->content);
+            $this->cache_file($resource->filename, $mimetype, $resource->content, $resource->encoding);
         }
     }
 
