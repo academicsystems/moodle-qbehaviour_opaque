@@ -205,14 +205,17 @@ class qbehaviour_opaque_state {
      * @param question_display_options $options display options in use.
      */
     public function start_question_session($step, $options) {
-        $resourcecache = $this->get_resource_cache();
+	$resourcecache = $this->get_resource_cache();
 
         $startreturn = $this->get_connection()->start(
                 $this->state->remoteid, $this->state->remoteversion,
                 $step->get_all_data(), $resourcecache->list_cached_resources(),
                 $options);
 
-        $this->extract_stuff_from_response($startreturn, $resourcecache);
+	if(!empty($startreturn) && !array_key_exists('error', $startreturn)) {
+                $this->extract_stuff_from_response($startreturn, $resourcecache);
+        }
+        
         $this->state->sequencenumber++;
     }
 
@@ -224,21 +227,23 @@ class qbehaviour_opaque_state {
         $resourcecache = $this->get_resource_cache();
 
         $processreturn = $this->get_connection()->process(
-                $this->state->questionsessionid, self::submitted_data($step));
-
-        if (!empty($processreturn->results)) {
-            $this->state->results = $processreturn->results;
-            $this->state->resultssequencenumber = $this->state->sequencenumber + 1;
-        }
+            $this->state->questionsessionid, self::submitted_data($step));
         
-        $this->extract_stuff_from_response($processreturn, $resourcecache);
+        if(!empty($processreturn) && !array_key_exists('error', $processreturn)) {
+            if (!empty($processreturn->results)) {
+                 $this->state->results = $processreturn->results;
+                 $this->state->resultssequencenumber = $this->state->sequencenumber + 1;
+            }
 
-		if ($processreturn->questionEnd) {
-            $this->state->questionended = true;
-            unset($this->state->questionsessionid);
-            return;
+            $this->extract_stuff_from_response($processreturn, $resourcecache);
+
+            if ($processreturn->questionEnd) {
+                $this->state->questionended = true;
+                unset($this->state->questionsessionid);
+                return;
+             }
         }
-        
+
         $this->state->sequencenumber++;
     }
 

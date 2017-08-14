@@ -103,17 +103,17 @@ class qbehaviour_opaque_connection_soap extends qtype_opaque_connection_soap {
 
 class qbehaviour_opaque_connection_rest extends qtype_opaque_connection_rest {
 
-	protected function generate_passkey($userid) {
-        return md5($this->passkeysalt . $userid);
-    }
-
     public function start($remoteid, $remoteversion, $data, $cachedresources, $options = null) {
+        $pk = '';
+        if(!empty($this->passkeysalt)) {
+            $pk = $this->getpasskeyquery();
+        }
 
         $initialparams = array(
             'randomseed' => $data['-_randomseed'],
             'userid' => $data['-_userid'],
             'language' => $data['-_language'],
-            'passKey' => $this->generate_passkey($data['-_userid']),
+            'passKey' => $pk,
             'preferredbehaviour' => $data['-_preferredbehaviour'],
         );
 
@@ -131,19 +131,24 @@ class qbehaviour_opaque_connection_rest extends qtype_opaque_connection_rest {
             $initialparams['display_generalfeedback'] = (int) $options->generalfeedback;
         }
 
-		
-
         return $this->restclient->start($remoteid, $remoteversion, $this->question_base_url(),
                 array_keys($initialparams), array_values($initialparams), $cachedresources);
     }
 
     public function process($questionsessionid, $response) {
+        if(!empty($this->passkeysalt)) {
+            $response['qengine.passKey'] = $this->getpasskeyquery();
+        }
         return $this->restclient->process($questionsessionid,
                 array_keys($response), array_values($response));
     }
 
     public function stop($questionsessionid) {
-        $response = $this->restclient->stop($questionsessionid);
+        $pk = null;
+        if(!empty($this->passkeysalt)) {
+            $pk = $this->getpasskeyquery();
+        }
+        $response = $this->restclient->stop($questionsessionid, $pk);
     }
 }
 
