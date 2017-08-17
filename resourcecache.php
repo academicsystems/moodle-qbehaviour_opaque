@@ -161,11 +161,22 @@ class qbehaviour_opaque_resource_cache {
      * @param string $content the contents to write to the file.
      */
     public function cache_file($filename, $mimetype, $content, $encoding = '') {
-	    if($encoding === "base64") {
-		    file_put_contents($this->file_path($filename), base64_decode($content));
-	    } else {
-		    file_put_contents($this->file_path($filename), $content);
-	    }
+        $pathdir = $this->file_path(substr($filename,0,strrpos($filename,'/')));
+        if(!is_dir($pathdir)) {
+            mkdir($pathdir,0777,true);
+        }
+
+        if($encoding === "base64") {
+            file_put_contents($this->file_path($filename), base64_decode($content));
+        } else {
+            file_put_contents($this->file_path($filename), $content);
+        }
+
+        $metapathdir = $this->file_meta_path(substr($filename,0,strrpos($filename,'/')));
+        if(!is_dir($metapathdir)) {
+            mkdir($metapathdir,0777,true);
+        } 
+
         file_put_contents($this->file_meta_path($filename), $mimetype);
     }
 
