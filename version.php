@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2015051000;
+$plugin->version   = 2017100203;
 $plugin->requires  = 2014041100;
 $plugin->cron      = 0;
 $plugin->component = 'qbehaviour_opaque';

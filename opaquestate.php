@@ -228,7 +228,7 @@ class qbehaviour_opaque_state {
 
         $processreturn = $this->get_connection()->process(
             $this->state->questionsessionid, self::submitted_data($step));
-        
+       
         if(!empty($processreturn) && !array_key_exists('error', $processreturn)) {
             if (!empty($processreturn->results)) {
                  $this->state->results = $processreturn->results;
@@ -427,6 +427,24 @@ class qbehaviour_opaque_state {
         $response = qbehaviour_opaque_hacks_filter_response($response, $this->state);
 
         $this->state->xhtml = $response->XHTML;
+
+	// Add question developer error messages
+	global $CFG;
+        if($CFG->debug && array_key_exists('errors',$response)) {
+        	$errmsg = '<div class="alert alert-danger alert-block fade in " role="alert">
+		<button type="button" class="close" data-dismiss="alert">x</button>
+		<strong>Question Errors:</strong>
+		<ul style="text-align:left;">';
+		
+		foreach($response->errors as $index => $err) {
+			$errmsg .= '<li>' . $err . '</li>';
+		}
+
+		$errmsg .= '</ul></div>';
+		$this->state->xhtml = $errmsg . $response->XHTML;
+	} else {
+		$this->state->xhtml = $response->XHTML;
+	}
 
         // Record the session id.
         if (!empty($response->questionSession)) {
