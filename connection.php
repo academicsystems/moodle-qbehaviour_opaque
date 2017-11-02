@@ -131,16 +131,20 @@ class qbehaviour_opaque_connection_rest extends qtype_opaque_connection_rest {
             $initialparams['display_generalfeedback'] = (int) $options->generalfeedback;
         }
 
-        return $this->restclient->start($remoteid, $remoteversion, $this->question_base_url(),
+        $response = $this->restclient->start($remoteid, $remoteversion, $this->question_base_url(),
                 array_keys($initialparams), array_values($initialparams), $cachedresources);
+        
+        return json_decode($response['body'],false);
     }
 
     public function process($questionsessionid, $response) {
         if(!empty($this->passkeysalt)) {
             $response['qengine.passKey'] = $this->getpasskeyquery();
         }
-        return $this->restclient->process($questionsessionid,
+        $response = $this->restclient->process($questionsessionid,
                 array_keys($response), array_values($response));
+        
+        return json_decode($response['body'],false);
     }
 
     public function stop($questionsessionid) {
@@ -151,9 +155,3 @@ class qbehaviour_opaque_connection_rest extends qtype_opaque_connection_rest {
         $response = $this->restclient->stop($questionsessionid, $pk);
     }
 }
-
-
-
-
-
-
