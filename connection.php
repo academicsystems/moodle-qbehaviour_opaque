@@ -134,7 +134,13 @@ class qbehaviour_opaque_connection_rest extends qtype_opaque_connection_rest {
         $response = $this->restclient->start($remoteid, $remoteversion, $this->question_base_url(),
                 array_keys($initialparams), array_values($initialparams), $cachedresources);
         
-        return json_decode($response['body'],false);
+        $decoded = json_decode($response['body'],false);
+		if($decoded == null) {
+			// indicates the quiz engine does not support
+			return array('error' => 'RESPONSE STATUS CODE: ' . $response['status-line']['code'] . ' ');
+		} else {
+			return $decoded;
+		}
     }
 
     public function process($questionsessionid, $response) {
@@ -144,7 +150,13 @@ class qbehaviour_opaque_connection_rest extends qtype_opaque_connection_rest {
         $response = $this->restclient->process($questionsessionid,
                 array_keys($response), array_values($response));
         
-        return json_decode($response['body'],false);
+        $decoded = json_decode($response['body'],false);
+		if($decoded == null) {
+			// indicates the quiz engine does not support
+			return array('error' => 'RESPONSE STATUS CODE: ' . $response['status-line']['code'] . ' ');
+		} else {
+			return $decoded;
+		}
     }
 
     public function stop($questionsessionid) {

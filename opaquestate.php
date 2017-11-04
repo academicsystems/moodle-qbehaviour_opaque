@@ -205,14 +205,18 @@ class qbehaviour_opaque_state {
      * @param question_display_options $options display options in use.
      */
     public function start_question_session($step, $options) {
-	$resourcecache = $this->get_resource_cache();
+    $resourcecache = $this->get_resource_cache();
 
         $startreturn = $this->get_connection()->start(
                 $this->state->remoteid, $this->state->remoteversion,
                 $step->get_all_data(), $resourcecache->list_cached_resources(),
                 $options);
 
-	if(!empty($startreturn) && !array_key_exists('error', $startreturn)) {
+        if(array_key_exists('error', $startreturn)) {
+            throw new coding_exception($startreturn['error']);
+        }
+    
+        if(!empty($startreturn)) {
                 $this->extract_stuff_from_response($startreturn, $resourcecache);
         }
         
@@ -229,7 +233,11 @@ class qbehaviour_opaque_state {
         $processreturn = $this->get_connection()->process(
             $this->state->questionsessionid, self::submitted_data($step));
        
-        if(!empty($processreturn) && !array_key_exists('error', $processreturn)) {
+        if(array_key_exists('error', $processreturn)) {
+            throw new coding_exception($processreturn['error']);
+        }
+       
+        if(!empty($processreturn)) {
             if (!empty($processreturn->results)) {
                  $this->state->results = $processreturn->results;
                  $this->state->resultssequencenumber = $this->state->sequencenumber + 1;
@@ -381,16 +389,16 @@ class qbehaviour_opaque_state {
      */
     protected function get_connection() {
         if (empty($this->connection)) {
-	        switch($this->state->engine->webservice) {
-			    case 'soap':
-			    	$this->connection = new qbehaviour_opaque_connection_soap($this->state->engine);
-			    	break;
-			    case 'rest':
-			    	$this->connection = new qbehaviour_opaque_connection_rest($this->state->engine);
-			    	break;
-			    default:
-			    	throw new moodle_exception('couldnotdeterminewebservice', 'qtype_opaque', '', $engineid, "invalid webservice: {$engine->webservice}");
-			}
+            switch($this->state->engine->webservice) {
+                case 'soap':
+                    $this->connection = new qbehaviour_opaque_connection_soap($this->state->engine);
+                    break;
+                case 'rest':
+                    $this->connection = new qbehaviour_opaque_connection_rest($this->state->engine);
+                    break;
+                default:
+                    throw new moodle_exception('couldnotdeterminewebservice', 'qtype_opaque', '', $engineid, "invalid webservice: {$engine->webservice}");
+            }
         }
 
         return $this->connection;
@@ -428,23 +436,23 @@ class qbehaviour_opaque_state {
 
         $this->state->xhtml = $response->XHTML;
 
-	// Add question developer error messages
-	global $CFG;
+    // Add question developer error messages
+    global $CFG;
         if($CFG->debug && array_key_exists('errors',$response)) {
-        	$errmsg = '<div class="alert alert-danger alert-block fade in " role="alert">
-		<button type="button" class="close" data-dismiss="alert">x</button>
-		<strong>Question Errors:</strong>
-		<ul style="text-align:left;">';
-		
-		foreach($response->errors as $index => $err) {
-			$errmsg .= '<li>' . $err . '</li>';
-		}
+            $errmsg = '<div class="alert alert-danger alert-block fade in " role="alert">
+        <button type="button" class="close" data-dismiss="alert">x</button>
+        <strong>Question Errors:</strong>
+        <ul style="text-align:left;">';
+        
+        foreach($response->errors as $index => $err) {
+            $errmsg .= '<li>' . $err . '</li>';
+        }
 
-		$errmsg .= '</ul></div>';
-		$this->state->xhtml = $errmsg . $response->XHTML;
-	} else {
-		$this->state->xhtml = $response->XHTML;
-	}
+        $errmsg .= '</ul></div>';
+        $this->state->xhtml = $errmsg . $response->XHTML;
+    } else {
+        $this->state->xhtml = $response->XHTML;
+    }
 
         // Record the session id.
         if (!empty($response->questionSession)) {
