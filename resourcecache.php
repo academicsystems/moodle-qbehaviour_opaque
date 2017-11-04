@@ -190,6 +190,11 @@ class qbehaviour_opaque_resource_cache {
         }
 
         foreach ($resources as $resource) {
+	        // do not cache temporary files
+	        if(strpos($resource->filename, 'tmp_')) {
+		        return;
+	        }
+	        
             $mimetype = $resource->mimeType;
             if (strpos($resource->mimeType, 'text/') === 0 && !empty($resource->encoding)) {
                 $mimetype .= ';charset=' . $resource->encoding;
