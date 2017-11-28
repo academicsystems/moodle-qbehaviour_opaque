@@ -213,7 +213,7 @@ class qbehaviour_opaque_state {
                 $options);
 
         if(array_key_exists('error', $startreturn)) {
-            throw new coding_exception($startreturn['error']);
+            throw new coding_exception($startreturn->error);
         }
     
         if(!empty($startreturn)) {
@@ -234,7 +234,7 @@ class qbehaviour_opaque_state {
             $this->state->questionsessionid, self::submitted_data($step));
        
         if(array_key_exists('error', $processreturn)) {
-            throw new coding_exception($processreturn['error']);
+            throw new coding_exception($processreturn->error);
         }
        
         if(!empty($processreturn)) {
